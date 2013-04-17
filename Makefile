@@ -30,6 +30,13 @@ OBJDIR ?= ./
 OBJS := $(addprefix $(OBJDIR),$(OBJS))
 SLIB := lib$(NAME).a
 
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+	DYLIB := lib$(NAME).dylib
+else
+	DYLIB := lib$(NAME).so
+endif
+
 vpath %.c $(SRCDIR)
 vpath %.h $(SRCDIR)
 
@@ -40,7 +47,7 @@ SED ?= sed
 
 CFLAGS ?= -O2
 # -Wno-missing-field-initializers - gperf's header doesn't pass on -Wextra
-MANDATORY_FLAGS := -Wall -Wextra -Wno-missing-field-initializers
+MANDATORY_FLAGS := -Wall -Wextra -Wno-missing-field-initializers -fPIC
 override CFLAGS := $(MANDATORY_FLAGS) $(CFLAGS)
 
 .PHONY: all clean objects package
@@ -48,10 +55,17 @@ override CFLAGS := $(MANDATORY_FLAGS) $(CFLAGS)
 all: package
 
 objects: $(OBJS)
-package: $(SLIB)
+package: $(SLIB) $(DYLIB)
 
 $(SLIB): $(OBJS)
 	$(AR) rcs $@ $^
+
+$(DYLIB): $(OBJS)
+ifeq ($(UNAME),Darwin)
+	$(CC) -dynamiclib $^ -o $@
+else
+	$(CC) -shared -Wl,-soname,$@ -o $@ $^
+endif
 
 $(OBJS): | $(OBJDIR)
 
@@ -72,7 +86,7 @@ html_unescape.h: html_unescape.gperf
 	$(GPERF) -t -N find_entity -H hash_entity -K entity -C -l --null-strings -m100 $< >$@
 
 clean:
-	$(RM) $(SLIB) $(OBJS) $(DEPS)
+	$(RM) $(DYLIB) $(SLIB) $(OBJS) $(DEPS)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
