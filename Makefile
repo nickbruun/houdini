@@ -36,12 +36,13 @@ vpath %.h $(SRCDIR)
 AR ?= ar
 CC ?= gcc
 GPERF ?= gperf
-SED ?= sed
 
 CFLAGS ?= -O2
 # -Wno-missing-field-initializers - gperf's header doesn't pass on -Wextra
 MANDATORY_FLAGS := -Wall -Wextra -Wno-missing-field-initializers
 override CFLAGS := $(MANDATORY_FLAGS) $(CFLAGS)
+
+CC_PARAMS = $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 
 .PHONY: all clean objects package
 
@@ -59,14 +60,10 @@ $(OBJDIR):
 	mkdir -p $@
 
 $(OBJDIR)%.o: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<
+	$(CC) $(CC_PARAMS) -c -o $@ $<
 
 %.d: %.c
-	@set -e; \
-	$(RM) $@; \
-	$(CC) -MM $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $< >$@.tmp; \
-	$(SED) 's,\($*\)\.o[ :]*,$$(OBJDIR)\1.o $@: ,g' <$@.tmp >$@; \
-	$(RM) $@.tmp
+	@$(CC) $(CC_PARAMS) -MT "\$$(OBJDIR)$(basename $^).o $@" -MM $< -o $@
 
 html_unescape.h: html_unescape.gperf
 	$(GPERF) -t -N find_entity -H hash_entity -K entity -C -l --null-strings -m100 $< >$@
