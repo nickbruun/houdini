@@ -31,11 +31,14 @@ extern int houdini_unescape_html(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_escape_xml(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_escape_uri(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_escape_url(gh_buf *ob, const uint8_t *src, size_t size);
+extern int houdini_escape_url_safe_table(gh_buf *ob, const uint8_t *src, size_t size, const char *safe_table);
 extern int houdini_escape_href(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_unescape_uri(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_unescape_url(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_escape_js(gh_buf *ob, const uint8_t *src, size_t size);
 extern int houdini_unescape_js(gh_buf *ob, const uint8_t *src, size_t size);
+
+extern const char *houdini_url_safe_table(const uint8_t *safe, size_t size);
 
 #ifdef __cplusplus
 }
