@@ -99,12 +99,18 @@ houdini_escape_url(gh_buf *ob, const uint8_t *src, size_t size)
 }
 
 int
+houdini_escape_uri_safe_table(gh_buf *ob, const uint8_t *src, size_t size, const char safe_table[256])
+{
+	return escape(ob, src, size, 0, safe_table);
+}
+
+int
 houdini_escape_url_safe_table(gh_buf *ob, const uint8_t *src, size_t size, const char safe_table[256])
 {
 	return escape(ob, src, size, 1, safe_table);
 }
 
-const char* houdini_url_safe_table(const uint8_t *safe, size_t size)
+static const char* uri_safe_table(const char* base_table, const uint8_t *safe, size_t size)
 {
     char *safe_table = malloc(sizeof(char) * 256);
     if (!safe_table)
@@ -113,7 +119,7 @@ const char* houdini_url_safe_table(const uint8_t *safe, size_t size)
     size_t i = 0;
     while (i < 256)
     {
-        safe_table[i] = URL_SAFE[i];
+        safe_table[i] = base_table[i];
         ++i;
     }
 
@@ -125,4 +131,14 @@ const char* houdini_url_safe_table(const uint8_t *safe, size_t size)
     }
 
     return safe_table;
+}
+
+const char* houdini_url_safe_table(const uint8_t *safe, size_t size)
+{
+    return uri_safe_table(URL_SAFE, safe, size);
+}
+
+const char* houdini_uri_safe_table(const uint8_t *safe, size_t size)
+{
+    return uri_safe_table(URI_SAFE, safe, size);
 }
